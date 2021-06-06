@@ -326,6 +326,7 @@ function App() {
   useEffect(async () => {
     await initWeb3()
     await getBetEvents()
+    pollData()
   }, [])
 
   const initWeb3 = async () => {
@@ -358,9 +359,21 @@ function App() {
       lotteryABI,
       lotteryAddress
     )
+  }
+
+  const getPot = async () => {
+    let lotteryContract = new window.web3.eth.Contract(
+      lotteryABI,
+      lotteryAddress
+    )
 
     let pot = await lotteryContract.methods.getPot().call()
-    console.log("pot입니당", pot)
+    let potEther = window.web3.utils.fromWei(pot, "ether")
+    setPot(potEther)
+  }
+
+  const pollData = async () => {
+    getPot()
   }
 
   const getBetEvents = async () => {
@@ -392,25 +405,76 @@ function App() {
     })
   }
 
+  const getCard = (_Character, _cardStyle) => {
+    return (
+      <button className={_cardStyle}>
+        <div className="card-body text-center">
+          <p className="card-text"></p>
+          <p className="card-text text-center" style={{ fontSize: 300 }}>
+            {_Character}
+          </p>
+          <p className="card-text"></p>
+        </div>
+      </button>
+    )
+  }
+
   return (
     <div className="App">
       <div className="container">
-        <div className="jumbotron">Lottery</div>
+        <div className="jumbotron">
+          <h1>Current Pot:{pot}</h1>
+          <p>Lottery tutorial</p>
+          <p>Your Bet</p>
+          <p>
+            {challenges[0]}
+            {challenges[1]}
+          </p>
+        </div>
       </div>
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="container">
+        <div className="card-group">
+          {getCard("A", "card bg-primary")}
+          {getCard("B", "card bg-warning")}
+          {getCard("C", "card bg-danger")}
+          {getCard("D", "card bg-success")}
+        </div>
+      </div>
+      <br></br>
+      <div className="container">
+        <button className="btn btn-danger btn-lg">BET!</button>
+      </div>
+      <br></br>
+      <div className="container">
+        <table className="table table-dark table-striped">
+          <thead>
+            <tr>
+              <th>Index</th>
+              <th>Address</th>
+              <th>Challenges</th>
+              <th>Answer</th>
+              <th>Pot</th>
+              <th>Status</th>
+              <th>AnserBlockNumber</th>
+            </tr>
+          </thead>
+          <tbody>
+            {finalRecord.map((record, index) => {
+              return (
+                <tr key={index}>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>0</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
