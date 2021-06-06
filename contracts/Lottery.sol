@@ -10,16 +10,48 @@ contract Lottery {
     uint256 private _tail;
     uint256 private _head;
     mapping(uint256 => BetInfo) private _bets;
-    address public owner;
+    address payable public owner;
 
     uint256 internal constant BLOCK_LIMIT = 256;
     uint256 internal constant BET_BLOCK_INTERVAL = 3;
     uint256 internal constant BET_AMOUNT = 5 * 10**15;
     uint256 private _pot;
-
+    bool private mode = false; //false:test mode,true: publish mode
+    bytes32 public answerForTest;
     enum BlockStatus {Checkable, NotRevealed, BlockLimitPassed}
     enum BettingResult {Fail, Win, Draw}
     event BET(
+        uint256 index,
+        address bettor,
+        uint256 amount,
+        byte challenges,
+        uint256 answerBlockNumber
+    );
+    event WIN(
+        uint256 index,
+        address bettor,
+        uint256 amount,
+        byte challenges,
+        byte answer,
+        uint256 answerBlockNumber
+    );
+    event FAIL(
+        uint256 index,
+        address bettor,
+        uint256 amount,
+        byte challenges,
+        byte answer,
+        uint256 answerBlockNumber
+    );
+    event DRAW(
+        uint256 index,
+        address bettor,
+        uint256 amount,
+        byte challenges,
+        byte answer,
+        uint256 answerBlockNumber
+    );
+    event REFUND(
         uint256 index,
         address bettor,
         uint256 amount,
@@ -62,24 +94,115 @@ contract Lottery {
     function distribute() public {
         // head 3 4 5 6 7 8 9 10 11 12 tail
         uint256 cur;
+        uint256 transferAmount;
         BetInfo memory b;
         BlockStatus currentBlockStatus;
+        BettingResult currentBettingResult;
         for (cur = _head; cur < _tail; cur++) {
             b = _bets[cur];
             currentBlockStatus = getBlockStatus(b.answerBlockNumber);
             //Checkable
-            if (currentBlockStatus == BlockStatus.Checkable) {}
+            if (currentBlockStatus == BlockStatus.Checkable) {
+                bytes32 answerBlockHash =
+                    getAnswerBlockHash(b.answerBlockNumber);
+                currentBettingResult = isMatch(b.challenges, answerBlockHash);
+                if (currentBettingResult == BettingResult.Win) {
+                    transferAmount = transferAfterPayingFee(
+                        b.bettor,
+                        _pot + BET_AMOUNT
+                    );
+                    _pot = 0; //보안적으로 더 안전한 방법은 pot을 먼저 초기화하는 것이다.
+
+                    emit WIN(
+                        cur,
+                        b.bettor,
+                        transferAmount,
+                        b.challenges,
+                        answerBlockHash[0],
+                        b.answerBlockNumber
+                    );
+                }
+                if (currentBettingResult == BettingResult.Fail) {
+                    _pot += BET_AMOUNT;
+                    emit FAIL(
+                        cur,
+                        b.bettor,
+                        0,
+                        b.challenges,
+                        answerBlockHash[0],
+                        b.answerBlockNumber
+                    );
+                }
+                if (currentBettingResult == BettingResult.Draw) {
+                    transferAmount = transferAfterPayingFee(
+                        b.bettor,
+                        BET_AMOUNT
+                    );
+                    emit DRAW(
+                        cur,
+                        b.bettor,
+                        transferAmount,
+                        b.challenges,
+                        answerBlockHash[0],
+                        b.answerBlockNumber
+                    );
+                }
+            }
             //Not Revealed
-            if (currentBlockStatus == BlockStatus.NotRevealed) {}
+            if (currentBlockStatus == BlockStatus.NotRevealed) {
+                break;
+            }
             //Block Limit Passed
             if (currentBlockStatus == BlockStatus.BlockLimitPassed) {
                 //refund
+                transferAmount = transferAfterPayingFee(b.bettor, BET_AMOUNT);
                 //emit refund
+                emit REFUND(
+                    cur,
+                    b.bettor,
+                    transferAmount,
+                    b.challenges,
+                    b.answerBlockNumber
+                );
             }
             popBet(cur);
 
             //check the answer
         }
+        _head = cur;
+    }
+
+    function transferAfterPayingFee(address payable addr, uint256 amount)
+        internal
+        returns (uint256)
+    {
+        uint256 fee = 0;
+        uint256 amountWithoutFee = amount - fee;
+
+        //transfer to addr
+
+        addr.transfer(amountWithoutFee);
+        //transfer to owner
+        owner.transfer(fee);
+
+        return amountWithoutFee;
+    }
+
+    function setAnswerForTest(bytes32 answer) public returns (bool result) {
+        require(
+            msg.sender == owner,
+            "Only owner can set the answer for test mode"
+        );
+        answerForTest = answer;
+        return true;
+    }
+
+    function getAnswerBlockHash(uint256 answerBlockNumber)
+        internal
+        view
+        returns (bytes32 answer)
+    {
+        return mode ? blockhash(answerBlockNumber) : answerForTest;
     }
 
     /**
