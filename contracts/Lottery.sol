@@ -18,7 +18,7 @@ contract Lottery {
     uint256 private _pot;
 
     enum BlockStatus {Checkable, NotRevealed, BlockLimitPassed}
-
+    enum BettingResult {Fail, Win, Draw}
     event BET(
         uint256 index,
         address bettor,
@@ -66,25 +66,59 @@ contract Lottery {
         BlockStatus currentBlockStatus;
         for (cur = _head; cur < _tail; cur++) {
             b = _bets[cur];
-            currentBlockStatus=getBlockStatus(b.answerBlockNumber);
+            currentBlockStatus = getBlockStatus(b.answerBlockNumber);
             //Checkable
-            if(currentBlockStatus==BlockStatus.Checkable){
-                
-            }
+            if (currentBlockStatus == BlockStatus.Checkable) {}
             //Not Revealed
-            if(currentBlockStatus==BlockStatus.NotRevealed){
-                
-            }
+            if (currentBlockStatus == BlockStatus.NotRevealed) {}
             //Block Limit Passed
-            if(currentBlockStatus==BlockStatus.BlockLimitPassed){
+            if (currentBlockStatus == BlockStatus.BlockLimitPassed) {
                 //refund
-                //emit refund  
+                //emit refund
             }
-            potBet(cur)
-            
+            popBet(cur);
+
             //check the answer
-            
         }
+    }
+
+    /**
+     * @dev challenges 베팅 글자와 정답 확인
+     * @param challenges 베팅 글자와 정답 확인
+     * @param answer block hash
+     * @return result
+     */
+    function isMatch(byte challenges, bytes32 answer)
+        public
+        pure
+        returns (BettingResult)
+    {
+        byte c1 = challenges;
+        byte c2 = challenges;
+        byte a1 = answer[0];
+        byte a2 = answer[0];
+
+        c1 = c1 >> 4;
+        c1 = c1 << 4;
+
+        a1 = a1 >> 4;
+        a1 = a1 << 4;
+
+        c2 = c2 << 4;
+        c2 = c2 >> 4;
+
+        a2 = a2 << 4;
+        a2 = a2 >> 4;
+
+        if (a1 == c1 && a2 == c2) {
+            return BettingResult.Win;
+        }
+
+        if (a1 == c1 || a2 == c2) {
+            return BettingResult.Draw;
+        }
+
+        return BettingResult.Fail;
     }
 
     function getBlockStatus(uint256 answerBlockNumber)
@@ -104,7 +138,7 @@ contract Lottery {
         if (block.number >= answerBlockNumber + BLOCK_LIMIT) {
             return BlockStatus.BlockLimitPassed;
         }
-        return BlockStatus.BlockLimitPassed
+        return BlockStatus.BlockLimitPassed;
     }
 
     //check the answer
