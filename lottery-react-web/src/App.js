@@ -1,7 +1,7 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import logo from "./logo.svg"
 import "./App.css"
-
+import "bootstrap/dist/css/bootstrap.css"
 import Web3 from "web3"
 
 let lotteryAddress = "0x1A089a4eA352AE5887f3bdc4d5706C096ef07462"
@@ -306,9 +306,26 @@ let lotteryABI = [
     type: "function",
   },
 ]
+
 function App() {
+  const [betRecords, setBetRecords] = useState([])
+  const [winRecords, setWinRecords] = useState([])
+  const [failRecords, setFailRecords] = useState([])
+  const [pot, setPot] = useState(0)
+  const [challenges, setChallenges] = useState(["A", "B"])
+  const [finalRecord, setFinalRecord] = useState([
+    {
+      bettor: "0xabcd...",
+      index: "0",
+      challenges: "ab",
+      answer: "ab",
+      targetBlockNumber: "10",
+      pot: "0",
+    },
+  ])
   useEffect(async () => {
     await initWeb3()
+    await getBetEvents()
   }, [])
 
   const initWeb3 = async () => {
@@ -346,6 +363,19 @@ function App() {
     console.log("pot입니당", pot)
   }
 
+  const getBetEvents = async () => {
+    let lotteryContract = new window.web3.eth.Contract(
+      lotteryABI,
+      lotteryAddress
+    )
+    const records = []
+    let events = await lotteryContract.getPastEvents("BET", {
+      fromBlock: 0,
+      toBlock: "latest",
+    })
+    console.log("이벤트", events)
+  }
+
   const bet = async () => {
     let lotteryContract = new window.web3.eth.Contract(
       lotteryABI,
@@ -354,18 +384,19 @@ function App() {
     let accounts = await window.web3.eth.getAccounts()
     let account = accounts[0]
     let nonce = await window.web3.eth.getTransactionCount(account)
-    lotteryContract.methods
-      .betAndDistribute("0xcd")
-      .send({
-        from: account,
-        value: 5000000000000000,
-        gas: 300000,
-        nonce: nonce,
-      })
+    lotteryContract.methods.betAndDistribute("0xcd").send({
+      from: account,
+      value: 5000000000000000,
+      gas: 300000,
+      nonce: nonce,
+    })
   }
 
   return (
     <div className="App">
+      <div className="container">
+        <div className="jumbotron">Lottery</div>
+      </div>
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
