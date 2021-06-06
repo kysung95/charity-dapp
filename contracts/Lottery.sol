@@ -91,6 +91,10 @@ contract Lottery {
 
     //save the bet to the queue
     //Distribute
+    /**
+     * @dev 베팅 결과값을 확인하고 팟머니 분배
+     * 정답실패: 팟머니 축척, 정답 맞춤: 팟머니 획득, 한글자 맞춤 or 확인불가: 환불
+     */
     function distribute() public {
         // head 3 4 5 6 7 8 9 10 11 12 tail
         uint256 cur;
