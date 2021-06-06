@@ -67,6 +67,22 @@ contract Lottery {
         return _pot;
     }
 
+    /**
+     * @dev 베팅과 정답 체크를 한다. 유저는 0.005 eth를 보내야 하고, 베팅용 1byte 글자를 내보냄.
+     * @param challenges 유저가 베팅하는 글자
+     * @return 함수가 잘 수행되었는지 확인하는 bool 값
+     */
+    function betAndDistribute(byte challenges)
+        public
+        payable
+        returns (bool result)
+    {
+        bet(challenges);
+        distribute();
+
+        return true;
+    }
+
     //Bet
     /**
      * @dev 베팅을 한다.
