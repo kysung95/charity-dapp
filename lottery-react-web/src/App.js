@@ -313,7 +313,7 @@ function App() {
   const [failRecords, setFailRecords] = useState([])
   const [pot, setPot] = useState(0)
   const [challenges, setChallenges] = useState(["A", "B"])
-  const [finalRecord, setFinalRecord] = useState([
+  const [finalRecords, setFinalRecords] = useState([
     {
       bettor: "0xabcd...",
       index: "0",
@@ -325,8 +325,8 @@ function App() {
   ])
   useEffect(async () => {
     await initWeb3()
-    await getBetEvents()
-    pollData()
+
+    setInterval(pollData, 1000)
   }, [])
 
   const initWeb3 = async () => {
@@ -377,6 +377,39 @@ function App() {
     await getBetEvents()
     await getWinEvents()
     await getFailEvents()
+    makeFinalRecords()
+  }
+
+  const makeFinalRecords = () => {
+    let f = 0
+    let w = 0
+    const records = [...betRecords]
+    for (let i = 0; i < betRecords.length; i += 1) {
+      if (
+        winRecords.length > 0 &&
+        betRecords[i].index === winRecords[w].index
+      ) {
+        records[i].win = "WIN"
+        records[i].answer = records[i].challenge
+        records[i].pot = window.web3.utils.fromWei(
+          winRecords[w].amount,
+          "ether"
+        )
+        if (winRecords.length - 1 > w) w++
+      } else if (
+        winRecords.length > 0 &&
+        betRecords[i].index === failRecords[f].index
+      ) {
+        records[i].win = "FAIL"
+        records[i].answer = failRecords[f].answer
+        records[i].pot = 0
+        if (failRecords.length - 1 > f) f++
+      } else {
+        records[i].answer = "Not Revealed"
+      }
+    }
+
+    setFinalRecords(records)
   }
 
   const getBetEvents = async () => {
@@ -393,7 +426,10 @@ function App() {
     for (let i = 0; i < events.length; i += 1) {
       const record = {}
       record.index = parseInt(events[i].returnValues.index, 10).toString()
-      record.bettor = events[i].returnValues.bettor
+      record.bettor =
+        events[i].returnValues.bettor.slice(0, 4) +
+        "..." +
+        events[i].returnValues.bettor.slice(40, 42)
       record.betBlockNumber = events[i].blockNumber
       record.targetBlockNumber =
         events[i].returnValues.answerBlockNumber.toString()
@@ -402,7 +438,7 @@ function App() {
       record.answer = "0x00"
       records.unshift(record)
     }
-    console.log("기록은?", records)
+    // console.log("기록은?", records)
     setBetRecords(records)
   }
 
@@ -444,7 +480,7 @@ function App() {
       record.answer = events[i].returnValues.answer
       records.unshift(record)
     }
-    console.log("Fail 기록은?", records)
+    // console.log("Fail 기록은?", records)
     setFailRecords(records)
   }
 
@@ -536,16 +572,16 @@ function App() {
             </tr>
           </thead>
           <tbody>
-            {finalRecord.map((record, index) => {
+            {finalRecords.map((record, index) => {
               return (
                 <tr key={index}>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
+                  <td>{record.index}</td>
+                  <td>{record.bettor}</td>
+                  <td>{record.challenges}</td>
+                  <td>{record.answer}</td>
+                  <td>{record.pot}</td>
+                  <td>{record.win}</td>
+                  <td>{record.targetBlockNumber}</td>
                 </tr>
               )
             })}
