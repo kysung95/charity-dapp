@@ -373,7 +373,10 @@ function App() {
   }
 
   const pollData = async () => {
-    getPot()
+    await getPot()
+    await getBetEvents()
+    await getWinEvents()
+    await getFailEvents()
   }
 
   const getBetEvents = async () => {
@@ -386,7 +389,63 @@ function App() {
       fromBlock: 0,
       toBlock: "latest",
     })
-    console.log("이벤트", events)
+
+    for (let i = 0; i < events.length; i += 1) {
+      const record = {}
+      record.index = parseInt(events[i].returnValues.index, 10).toString()
+      record.bettor = events[i].returnValues.bettor
+      record.betBlockNumber = events[i].blockNumber
+      record.targetBlockNumber =
+        events[i].returnValues.answerBlockNumber.toString()
+      record.challenges = events[i].returnValues.challenges
+      record.win = "Not Revealed"
+      record.answer = "0x00"
+      records.unshift(record)
+    }
+    console.log("기록은?", records)
+    setBetRecords(records)
+  }
+
+  const getWinEvents = async () => {
+    let lotteryContract = new window.web3.eth.Contract(
+      lotteryABI,
+      lotteryAddress
+    )
+    const records = []
+    let events = await lotteryContract.getPastEvents("WIN", {
+      fromBlock: 0,
+      toBlock: "latest",
+    })
+
+    for (let i = 0; i < events.length; i += 1) {
+      const record = {}
+      record.index = parseInt(events[i].returnValues.index, 10).toString()
+      record.amount = parseInt(events[i].returnValues.amount, 10).toString()
+      records.unshift(record)
+    }
+    // console.log("Win 기록은?", records)
+    setWinRecords(records)
+  }
+
+  const getFailEvents = async () => {
+    let lotteryContract = new window.web3.eth.Contract(
+      lotteryABI,
+      lotteryAddress
+    )
+    const records = []
+    let events = await lotteryContract.getPastEvents("FAIL", {
+      fromBlock: 0,
+      toBlock: "latest",
+    })
+
+    for (let i = 0; i < events.length; i += 1) {
+      const record = {}
+      record.index = parseInt(events[i].returnValues.index, 10).toString()
+      record.answer = events[i].returnValues.answer
+      records.unshift(record)
+    }
+    console.log("Fail 기록은?", records)
+    setFailRecords(records)
   }
 
   const bet = async () => {
@@ -396,18 +455,34 @@ function App() {
     )
     let accounts = await window.web3.eth.getAccounts()
     let account = accounts[0]
+    let challenge =
+      "0x" + challenges[0].toLowerCase() + challenges[1].toLowerCase()
     let nonce = await window.web3.eth.getTransactionCount(account)
-    lotteryContract.methods.betAndDistribute("0xcd").send({
-      from: account,
-      value: 5000000000000000,
-      gas: 300000,
-      nonce: nonce,
-    })
+    lotteryContract.methods
+      .betAndDistribute(challenge)
+      .send({
+        from: account,
+        value: 5000000000000000,
+        gas: 300000,
+        nonce: nonce,
+      })
+      .on("transactionHash", hash => {
+        console.log(hash)
+      })
+  }
+
+  const onClickCard = _Character => {
+    setChallenges([challenges[1], _Character])
   }
 
   const getCard = (_Character, _cardStyle) => {
     return (
-      <button className={_cardStyle}>
+      <button
+        className={_cardStyle}
+        onClick={() => {
+          onClickCard(_Character)
+        }}
+      >
         <div className="card-body text-center">
           <p className="card-text"></p>
           <p className="card-text text-center" style={{ fontSize: 300 }}>
@@ -437,12 +512,14 @@ function App() {
           {getCard("A", "card bg-primary")}
           {getCard("B", "card bg-warning")}
           {getCard("C", "card bg-danger")}
-          {getCard("D", "card bg-success")}
+          {getCard("0", "card bg-success")}
         </div>
       </div>
       <br></br>
       <div className="container">
-        <button className="btn btn-danger btn-lg">BET!</button>
+        <button className="btn btn-danger btn-lg" onClick={bet}>
+          BET!
+        </button>
       </div>
       <br></br>
       <div className="container">
