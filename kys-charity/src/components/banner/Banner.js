@@ -1,6 +1,6 @@
 import React, { Component } from "react"
 import DonateForm from "../form/DonateForm"
-import iphoneX from "../../images/seoga-charity.png"
+import bannerImage from "../../images/seoga-charity.png"
 import charity from "../../ethereum/factory"
 import web3 from "../../ethereum/web3"
 import "./Banner.css"
@@ -67,7 +67,11 @@ export default class Banner extends Component {
                   </button>
                 </div>
                 <div className="column__two-third">
-                  <img className="iphonex-asset" src={iphoneX} alt="iPhoneX" />
+                  <img
+                    className="iphonex-asset"
+                    src={bannerImage}
+                    alt="bannerImage"
+                  />
                 </div>
               </div>
             </div>
