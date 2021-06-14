@@ -60,7 +60,7 @@ function App() {
             <SubHeader title="Education" subContent={book} animation="medium" />
             <SubHeader title="Recreation" subContent={park} animation="slow" />
           </div>
-          <div className="message-section-title">Donors</div>
+          <div className="message-section-title">기부해주신 분들</div>
           <div className="message-flex">
             <MessageListContainer />
             {/* <div className='round-circle'></div> */}

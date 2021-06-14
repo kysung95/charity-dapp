@@ -30,16 +30,8 @@
   margin: 0;
   box-sizing: border-box;
   text-decoration: none;
-  /* -webkit-animation-name: subtleFade;
-  -webkit-animation-duration: 0.55s;
-  animation-name: subtleFade;
-  animation-duration: 0.55s; */
   font-family: "Open Sans", sans-serif;
 }
-/* 
-*:focus {
-  outline: none;
-} */
 
 .main {
   width: 100%;
@@ -73,7 +65,7 @@
 }
 
 .round-circle {
-  color: #75489f;
+  color: #1b775b;
   height: 600px;
   width: 600px;
   -moz-border-radius: 50px;
@@ -82,7 +74,6 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  /* transform: translate(-50%, -50%); */
 }
 
 .message-section-title {
@@ -92,7 +83,7 @@
   margin-left: 20px;
   padding-bottom: 30px;
   font-weight: 700;
-  color: #75489f;
+  color: #1b775b;
 }
 
 .message-flex {

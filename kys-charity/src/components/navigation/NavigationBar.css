@@ -28,7 +28,7 @@
   display: inline-block;
   transition: 0.5s;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 30px;
   letter-spacing: 1px;
 }
 
@@ -41,10 +41,10 @@
 
 .nav-flex-right {
   display: flex;
-	flex-direction: row;
-	flex-wrap: nowrap;
-	justify-content: flex-end;
-	align-items: baseline;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  align-items: baseline;
 }
 
 .nav-flex-right div {
@@ -55,21 +55,19 @@
 }
 
 @media (max-width: 1235px) {
-
-.nav-flex {
-  margin-left: 5px;
-}
+  .nav-flex {
+    margin-left: 5px;
+  }
 }
 
 @media (max-width: 825px) {
-.nav-flex-right {
-  display: none;
-}
+  .nav-flex-right {
+    display: none;
+  }
 
-.nav-flex {
-  text-align: center;
-  display: block;
-  margin-left: 0;
-}
-
+  .nav-flex {
+    text-align: center;
+    display: block;
+    margin-left: 0;
+  }
 }
