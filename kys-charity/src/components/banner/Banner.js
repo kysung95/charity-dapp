@@ -5,7 +5,148 @@ import charity from "../../ethereum/factory"
 import web3 from "../../ethereum/web3"
 import "./Banner.css"
 import "../../App.css"
+import Web3 from "web3"
 
+let charityAddress = "0x507af33c5627A45805C5311b77B2794f405851D8"
+let charityABI = [
+  {
+    constant: true,
+    inputs: [],
+    name: "organization",
+    outputs: [
+      {
+        name: "",
+        type: "address",
+      },
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "charityCount",
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+      },
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [
+      {
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "donators",
+    outputs: [
+      {
+        name: "message",
+        type: "string",
+      },
+      {
+        name: "username",
+        type: "string",
+      },
+      {
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        name: "creator",
+        type: "address",
+      },
+    ],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        name: "_from",
+        type: "address",
+      },
+      {
+        indexed: false,
+        name: "_message",
+        type: "string",
+      },
+      {
+        indexed: false,
+        name: "_username",
+        type: "string",
+      },
+      {
+        indexed: false,
+        name: "_value",
+        type: "uint256",
+      },
+    ],
+    name: "CharityEvent",
+    type: "event",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "getSummary",
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+      },
+      {
+        name: "",
+        type: "uint256",
+      },
+      {
+        name: "",
+        type: "uint256",
+      },
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      {
+        name: "message",
+        type: "string",
+      },
+      {
+        name: "username",
+        type: "string",
+      },
+      {
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "contributeMessage",
+    outputs: [],
+    payable: true,
+    stateMutability: "payable",
+    type: "function",
+  },
+]
 export default class Banner extends Component {
   state = {
     modalOpen: false,
@@ -15,13 +156,54 @@ export default class Banner extends Component {
   }
 
   componentDidMount = async event => {
-    const summary = await charity.methods.getSummary().call()
+    await this.initWeb3()
+
+    let summary = await this.charityContract.methods.getSummary().call()
+
+    // const summary = await charity.methods.getSummary().call()
     this.setState({
       balance: summary[0],
       donatorsCount: summary[1],
       charityCount: summary[2],
     })
-    // console.log(summary);
+  }
+
+  initWeb3 = async () => {
+    if (window.ethereum) {
+      console.log("Recent mode")
+      this.web3 = new Web3(window.ethereum)
+      try {
+        // Request account access if needed
+        await window.ethereum.enable()
+        // Acccounts now exposed
+        // this.web3.eth.sendTransaction({/* ... */});
+      } catch (error) {
+        // User denied account access...
+        console.log(`User denied account access error : ${error}`)
+      }
+    }
+    // Legacy dapp browsers...
+    else if (window.web3) {
+      console.log("legacy mode")
+      this.web3 = new Web3(Web3.currentProvider)
+      // Acccounts always exposed
+      // web3.eth.sendTransaction({/* ... */});
+    }
+    // Non-dapp browsers...
+    else {
+      console.log(
+        "Non-Ethereum browser detected. You should consider trying MetaMask!"
+      )
+    }
+
+    let accounts = await this.web3.eth.getAccounts()
+    this.account = accounts[0]
+
+    this.charityContract = new this.web3.eth.Contract(
+      charityABI,
+      charityAddress
+    )
+    console.log(this.charityContract)
   }
 
   clickOpenModal = () => {

@@ -3,12 +3,12 @@ pragma solidity ^0.4.20;
 contract CharityFactory {
     address[] public deployedCharities;
     
-    function createCharity() public {
+    function createCharity() public { //기부 활동 생성
         address newCharity = new Charity( msg.sender );
         deployedCharities.push(newCharity);
     }
     
-    function getDeployedCharity() public view returns (address[]) {
+    function getDeployedCharity() public view returns (address[]) { 
         return deployedCharities;
     }
 }
