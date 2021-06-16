@@ -2,6 +2,7 @@ import React, { Component } from "react"
 import "./NavigationBar.css"
 
 export default class NavigationBar extends Component {
+  //header component
   render() {
     return (
       <div className="nav-background">

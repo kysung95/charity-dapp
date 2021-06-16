@@ -4,6 +4,147 @@ import web3 from "../../ethereum/web3"
 import "./DonateForm.css"
 import PeriodLoader from "../common/PeriodLoader"
 
+// let charityAddress = "0xC89C4883D9206f011cC10AeB06558845BCe8Ddfd"  //기존에는 외부의 migration을 사용하려 했으나,  현재는 truffle-react 내부에서 모든 것을 해결
+// let charityABI = [
+//   {
+//     constant: true,
+//     inputs: [],
+//     name: "organization",
+//     outputs: [
+//       {
+//         name: "",
+//         type: "address",
+//       },
+//     ],
+//     payable: false,
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     constant: true,
+//     inputs: [],
+//     name: "charityCount",
+//     outputs: [
+//       {
+//         name: "",
+//         type: "uint256",
+//       },
+//     ],
+//     payable: false,
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     constant: true,
+//     inputs: [
+//       {
+//         name: "",
+//         type: "uint256",
+//       },
+//     ],
+//     name: "donators",
+//     outputs: [
+//       {
+//         name: "message",
+//         type: "string",
+//       },
+//       {
+//         name: "username",
+//         type: "string",
+//       },
+//       {
+//         name: "value",
+//         type: "uint256",
+//       },
+//     ],
+//     payable: false,
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     inputs: [
+//       {
+//         name: "creator",
+//         type: "address",
+//       },
+//     ],
+//     payable: false,
+//     stateMutability: "nonpayable",
+//     type: "constructor",
+//   },
+//   {
+//     anonymous: false,
+//     inputs: [
+//       {
+//         indexed: false,
+//         name: "_from",
+//         type: "address",
+//       },
+//       {
+//         indexed: false,
+//         name: "_message",
+//         type: "string",
+//       },
+//       {
+//         indexed: false,
+//         name: "_username",
+//         type: "string",
+//       },
+//       {
+//         indexed: false,
+//         name: "_value",
+//         type: "uint256",
+//       },
+//     ],
+//     name: "CharityEvent",
+//     type: "event",
+//   },
+//   {
+//     constant: true,
+//     inputs: [],
+//     name: "getSummary",
+//     outputs: [
+//       {
+//         name: "",
+//         type: "uint256",
+//       },
+//       {
+//         name: "",
+//         type: "uint256",
+//       },
+//       {
+//         name: "",
+//         type: "uint256",
+//       },
+//     ],
+//     payable: false,
+//     stateMutability: "view",
+//     type: "function",
+//   },
+//   {
+//     constant: false,
+//     inputs: [
+//       {
+//         name: "message",
+//         type: "string",
+//       },
+//       {
+//         name: "username",
+//         type: "string",
+//       },
+//       {
+//         name: "value",
+//         type: "uint256",
+//       },
+//     ],
+//     name: "contributeMessage",
+//     outputs: [],
+//     payable: true,
+//     stateMutability: "payable",
+//     type: "function",
+//   },
+// ]
+
 export default class DonateForm extends Component {
   state = {
     name: "",
@@ -18,6 +159,7 @@ export default class DonateForm extends Component {
   }
 
   onDonateMessageSend = async event => {
+    //validation 체크
     event.preventDefault()
     const { description, name, value } = this.state
     if (this.state.value === "" || this.state.value === 0) {
@@ -36,6 +178,7 @@ export default class DonateForm extends Component {
         loading: true,
         errorMessage: "",
       })
+
       await charity.methods
         .contributeMessage(description, name, web3.utils.toWei(value, "ether"))
         .send({
@@ -59,7 +202,7 @@ export default class DonateForm extends Component {
       }
       if (err.message.replace(/ .*/, "") === "No") {
         return this.setState({
-          errorMessage: "메타마스크 정보를 읽어들일 수가 없습니다.",
+          errorMessage: "메타마스크 노드를 연결중입니다.",
           value: "",
           loading: false,
         })

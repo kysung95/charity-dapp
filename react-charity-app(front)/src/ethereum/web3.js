@@ -8,7 +8,7 @@ if (typeof window !== "undefined" && typeof window.web3 !== "undefined") {
 } else {
   //we are not on the browser OR the user is not running metamask
   const provider = new Web3.providers.HttpProvider(
-    "https://ropsten.infura.io/v3/ca3cf83bcc384e43a424683b3be881ec"
+    "https://ropsten.infura.io/v3/ca3cf83bcc384e43a424683b3be881ec"   //infura 주소
   )
   web3 = new Web3(provider)
 }
